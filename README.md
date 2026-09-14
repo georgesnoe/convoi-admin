@@ -1,76 +1,120 @@
-# React + TypeScript + Vite
+# Convoi Admin
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Admin dashboard for the Convoi platform. Built with React, TypeScript and Vite.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **React 19** + **TypeScript**
+- **Vite 8** (with the React Compiler via the Babel plugin)
+- **react-router 8** — routing
+- **shadcn/ui** on top of **@base-ui/react** — UI components
+- **Tailwind CSS v4** — styling
+- **zod 4** — schema validation (forms + environment variables)
+- **sonner** — toasts
+- **@tabler/icons-react** — icons
+- **bun** — package manager / runtime
 
-## React Compiler
+## Getting Started
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+### Prerequisites
 
-Note: This will impact Vite dev & build performances.
-You can also try [the experimental native React Compiler support in plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md#rust-react-compiler) by using `compiler: true` in the plugin options instead of using the Babel plugin.
+- [Bun](https://bun.sh) (or npm)
 
-## Expanding the ESLint configuration
+### Installation
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```bash
+bun install
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+### Environment variables
 
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
+Create a `.env` file at the project root:
 
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```bash
+VITE_API_BASE_URL=http://localhost:8080
 ```
+
+| Variable            | Description                 | Default                 |
+| ------------------- | --------------------------- | ----------------------- |
+| `VITE_API_BASE_URL` | Base URL of the backend API | `http://localhost:8080` |
+
+The environment is validated at startup by `src/lib/env.ts` (zod). The app throws if `VITE_API_BASE_URL` is missing or not a valid URL.
+
+### Development
+
+```bash
+bun run dev
+```
+
+### Build
+
+```bash
+bun run build
+```
+
+### Preview the production build
+
+```bash
+bun run preview
+```
+
+### Lint & format
+
+```bash
+bun run lint
+bun run lint:fix
+bun run format
+bun run format:check
+```
+
+## Project structure
+
+```
+src/
+├── components/
+│   ├── ui/                 # shadcn/ui primitives (button, card, field, input, ...)
+│   ├── logo.tsx            # Shared app logo
+│   └── require-auth.tsx    # Route guard
+├── lib/
+│   ├── api.ts              # API client (fetch wrapper, credentials: "include")
+│   └── env.ts              # Zod validation of environment variables
+├── routes/
+│   ├── sign-in.tsx         # Sign-in page
+│   ├── sign-up.tsx         # Sign-up page
+│   └── dashboard.tsx       # Dashboard (protected)
+├── routes.tsx              # Router definition
+└── main.tsx                # App entry point
+```
+
+## Routes
+
+| Path         | Description                          | Protected |
+| ------------ | ------------------------------------ | --------- |
+| `/`          | Redirects to `/dashboard`            | —         |
+| `/sign-in`   | Sign-in form                         | No        |
+| `/sign-up`   | Sign-up form (name, email, password) | No        |
+| `/dashboard` | Dashboard ("Hello world" for v0)     | Yes       |
+
+## Backend
+
+The backend API is implemented in a separate repository:
+
+- **Repository:** [georgesnoe/convoi-backend](https://github.com/georgesnoe/convoi-backend)
+
+It exposes the endpoints consumed by this admin app (see [API integration](#api-integration)) and sets the session cookies that this app sends back with `credentials: "include"`.
+
+## API integration
+
+All requests go through `src/lib/api.ts` and include `credentials: "include"`, so the session cookies set by the server are sent with every request.
+
+| Endpoint            | Method | Body                        | Used by      |
+| ------------------- | ------ | --------------------------- | ------------ |
+| `/api/auth/sign-in` | POST   | `{ email, password }`       | Sign-in form |
+| `/api/auth/sign-up` | POST   | `{ name, email, password }` | Sign-up form |
+| `/api/users/me`     | GET    | —                           | Route guard  |
+
+The auth functions return the raw `Response`; the forms treat `status === 200` as success and redirect to `/dashboard`.
+
+## Auth guard
+
+`RequireAuth` wraps the `/dashboard` route. On mount it calls `GET /api/users/me`; if the response is not `ok` (e.g. 401), the user is redirected to `/sign-in`. Children are rendered immediately and never unmounted during the request, so page state is preserved.
