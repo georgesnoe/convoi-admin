@@ -20,11 +20,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true,
-    "paths": {
-      "~/*": ["./src/*"],
-      "~/assets/*": ["./assets/*"]
-    }
+    "noFallthroughCasesInSwitch": true
   },
   "include": ["src"]
 }
