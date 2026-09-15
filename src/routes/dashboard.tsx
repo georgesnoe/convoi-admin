@@ -1,22 +1,20 @@
 import {
   IconAlertCircle,
-  IconArrowDown,
-  IconArrowUp,
-  IconChartBar,
+  IconCalendar,
+  IconCar,
   IconCircleCheck,
-  IconClock,
   IconDots,
-  IconFileText,
   IconHome,
-  IconLayoutGrid,
   IconLogout,
   IconMessageCircle,
   IconNotification,
+  IconRoute,
   IconSearch,
   IconSettings,
   IconUser,
 } from "@tabler/icons-react";
 import { useEffect, useState, type ReactElement } from "react";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router";
 import {
   Popover,
   PopoverContent,
@@ -51,11 +49,6 @@ import { Logo } from "../components/logo";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Kbd, KbdGroup } from "../components/ui/kbd";
 import {
-  Progress,
-  ProgressLabel,
-  ProgressValue,
-} from "../components/ui/progress";
-import {
   Command,
   CommandDialog,
   CommandEmpty,
@@ -64,41 +57,26 @@ import {
   CommandItem,
   CommandList,
 } from "../components/ui/command";
+import { signOut } from "../lib/api";
 
 const navItems = [
+  { label: "Tableau de bord", icon: IconHome, to: "/dashboard" },
+  { label: "Utilisateurs", icon: IconUser, to: "/dashboard/users" },
+  { label: "Véhicules", icon: IconCar, to: "/dashboard/vehicles" },
+  { label: "Trajets", icon: IconRoute, to: "/dashboard/trips" },
   {
-    label: "Tableau de bord",
-    icon: IconHome,
-    active: true,
+    label: "Réservations",
+    icon: IconCalendar,
+    to: "/dashboard/reservations",
   },
-  {
-    label: "Projects",
-    icon: IconLayoutGrid,
-    active: false,
-  },
-  {
-    label: "Analyses",
-    icon: IconChartBar,
-    active: false,
-  },
-  {
-    label: "Team",
-    icon: IconUser,
-    active: false,
-  },
-  {
-    label: "Settings",
-    icon: IconSettings,
-    active: false,
-  },
+  { label: "Messages", icon: IconMessageCircle, to: "/dashboard/messages" },
 ];
 
-const navCommands = [
-  ...navItems.map((item) => ({
-    label: `Go to ${item.label}`,
-    icon: item.icon,
-  })),
-];
+const navCommands = navItems.map((item) => ({
+  label: `Go to ${item.label}`,
+  icon: item.icon,
+  to: item.to,
+}));
 
 const actionCommands = [
   {
@@ -111,67 +89,12 @@ const actionCommands = [
   },
 ];
 
-const stats = [
-  { label: "Total revenue", value: "$48,240", delta: "+12.5%", positive: true },
-  { label: "Active users", value: "8,941", delta: "+4.3%", positive: true },
-  { label: "Conversion", value: "3.24%", delta: "-0.8%", positive: false },
-];
-
 const currentUser = {
   name: "Georges-Noé",
   initials: "GN",
   email: "georges@gmail.com",
   avatar: "https://i.pravatar.cc/150?img=12",
 };
-
-const activity = [
-  {
-    id: 1,
-    user: "Sofia Reyes",
-    initials: "SR",
-    avatar: "https://i.pravatar.cc/150?img=45",
-    action: "Closed issue",
-    target: "Payment gateway timeout",
-    time: "2 Min Ago",
-    icon: IconCircleCheck,
-  },
-  {
-    id: 2,
-    user: "James Okafor",
-    initials: "JO",
-    avatar: "https://i.pravatar.cc/150?img=33",
-    action: "Updated report",
-    target: "Q2 Revenue Summary",
-    time: "18 Min Ago",
-    icon: IconFileText,
-  },
-  {
-    id: 3,
-    user: "Mia Chen",
-    initials: "MC",
-    avatar: "https://i.pravatar.cc/150?img=20",
-    action: "Scheduled review",
-    target: "Infrastructure audit",
-    time: "1 Hour Ago",
-    icon: IconClock,
-  },
-  {
-    id: 4,
-    user: "Daniel Park",
-    initials: "DP",
-    avatar: "https://i.pravatar.cc/150?img=53",
-    action: "Closed issue",
-    target: "Dashboard cache miss",
-    time: "3 Hours Ago",
-    icon: IconCircleCheck,
-  },
-];
-
-const projects = [
-  { name: "Horizon Rebrand", progress: 72, status: "On Track" },
-  { name: "API v3 Migration", progress: 38, status: "At Risk" },
-  { name: "Mobile App Launch", progress: 91, status: "On Track" },
-];
 
 const initialNotifications = [
   {
@@ -317,6 +240,7 @@ function UserMenu({
   trigger: ReactElement;
   align?: "start" | "end";
 }) {
+  const navigate = useNavigate();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={trigger} />
@@ -339,7 +263,16 @@ function UserMenu({
           Settings
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive">
+        <DropdownMenuItem
+          variant="destructive"
+          onClick={async () => {
+            try {
+              await signOut();
+            } finally {
+              navigate("/sign-in", { replace: true });
+            }
+          }}
+        >
           <IconLogout aria-hidden="true" />
           Log Out
         </DropdownMenuItem>
@@ -348,7 +281,9 @@ function UserMenu({
   );
 }
 
-export default function Dashboard() {
+export default function DashboardLayout() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [commandOpen, setCommandOpen] = useState(false);
 
   useEffect(() => {
@@ -361,6 +296,8 @@ export default function Dashboard() {
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
   }, []);
+
+  const current = navItems.find((item) => location.pathname === item.to);
 
   return (
     <SidebarProvider defaultOpen className="min-h-svh">
@@ -386,11 +323,11 @@ export default function Dashboard() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {navItems.map((item) => (
-                  <SidebarMenuItem key={item.label}>
+                  <SidebarMenuItem key={item.to}>
                     <SidebarMenuButton
-                      isActive={item.active}
+                      isActive={location.pathname === item.to}
                       tooltip={item.label}
-                      render={<a href="#" />}
+                      render={<NavLink to={item.to} />}
                     >
                       <item.icon aria-hidden="true" />
                       <span>{item.label}</span>
@@ -440,9 +377,11 @@ export default function Dashboard() {
         <header className="flex h-14 items-center gap-4 border-b border-border px-4 sm:px-6">
           <SidebarTrigger className="-ml-1" />
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Acme</span>
+            <span className="text-xs text-muted-foreground">Convoi</span>
             <span className="text-xs text-muted-foreground">/</span>
-            <span className="text-xs font-semibold">Dashboard</span>
+            <span className="text-xs font-semibold">
+              {current?.label ?? "Dashboard"}
+            </span>
           </div>
           <div className="ml-auto flex items-center gap-2">
             <button
@@ -481,159 +420,7 @@ export default function Dashboard() {
         </header>
 
         <div className="flex-1 p-4 sm:p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h2 className="font-heading text-xl font-bold tracking-tight">
-                Welcome back, Alex
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Here&apos;s what&apos;s happening across your workspace today.
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="hidden shrink-0 sm:flex"
-            >
-              Export Report
-            </Button>
-          </div>
-
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            {stats.map((card) => (
-              <div
-                key={card.label}
-                className="rounded-lg border border-border bg-card p-4 transition-shadow hover:shadow-sm"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-medium text-muted-foreground">
-                    {card.label}
-                  </p>
-                  <span
-                    className={`flex items-center gap-0.5 text-xs font-semibold tabular-nums ${
-                      card.positive
-                        ? "text-foreground"
-                        : "text-muted-foreground"
-                    }`}
-                  >
-                    {card.positive ? (
-                      <IconArrowUp className="size-3" aria-hidden="true" />
-                    ) : (
-                      <IconArrowDown className="size-3" aria-hidden="true" />
-                    )}
-                    {card.delta}
-                  </span>
-                </div>
-                <p className="mt-2.5 text-2xl font-bold tracking-tight tabular-nums">
-                  {card.value}
-                </p>
-                <p className="mt-1 text-[11px] text-muted-foreground">
-                  Vs. Last Month
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-6 grid gap-4 lg:grid-cols-5">
-            <div className="overflow-hidden rounded-lg border border-border bg-card lg:col-span-3">
-              <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                <p className="text-sm font-semibold">Recent activity</p>
-                <Button
-                  nativeButton={false}
-                  variant="ghost"
-                  className="h-auto px-0 py-0 text-xs text-muted-foreground hover:text-foreground"
-                  render={<a href="#" />}
-                >
-                  View All
-                </Button>
-              </div>
-              <ul className="divide-y divide-border">
-                {activity.map((item) => (
-                  <li
-                    key={item.id}
-                    className="flex items-start gap-3 px-4 py-3 transition-colors hover:bg-muted/40"
-                  >
-                    <Avatar className="mt-0.5 size-7 shrink-0">
-                      <AvatarImage
-                        src={item.avatar}
-                        alt={item.user}
-                        className="grayscale"
-                      />
-                      <AvatarFallback className="text-[10px]">
-                        {item.initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs">
-                        <span className="font-semibold">{item.user}</span>
-                        <span className="text-muted-foreground">
-                          {" "}
-                          {item.action}{" "}
-                        </span>
-                        <span className="font-medium">{item.target}</span>
-                      </p>
-                      <p className="mt-0.5 text-[11px] text-muted-foreground">
-                        {item.time}
-                      </p>
-                    </div>
-                    <item.icon
-                      className="mt-0.5 size-4 shrink-0 text-muted-foreground"
-                      aria-hidden="true"
-                    />
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="overflow-hidden rounded-lg border border-border bg-card lg:col-span-2">
-              <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                <p className="text-sm font-semibold">Active projects</p>
-                <Button
-                  nativeButton={false}
-                  variant="ghost"
-                  className="h-auto px-0 py-0 text-xs text-muted-foreground hover:text-foreground"
-                  render={<a href="#" />}
-                >
-                  View All
-                </Button>
-              </div>
-              <ul className="divide-y divide-border">
-                {projects.map((project) => {
-                  const atRisk = project.status !== "On Track";
-                  return (
-                    <li
-                      key={project.name}
-                      className="px-4 py-3.5 transition-colors hover:bg-muted/40"
-                    >
-                      <Progress value={project.progress} className="gap-2">
-                        <div className="flex w-full items-center justify-between gap-2">
-                          <ProgressLabel className="truncate text-xs font-semibold text-foreground">
-                            {project.name}
-                          </ProgressLabel>
-                          {atRisk ? (
-                            <Badge
-                              variant="outline"
-                              className="shrink-0 text-[10px] text-muted-foreground"
-                            >
-                              {project.status}
-                            </Badge>
-                          ) : (
-                            <Badge
-                              variant="secondary"
-                              className="shrink-0 text-[10px]"
-                            >
-                              {project.status}
-                            </Badge>
-                          )}
-                          <ProgressValue className="ml-0 w-8 shrink-0 text-right text-[11px]" />
-                        </div>
-                      </Progress>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </div>
+          <Outlet />
         </div>
       </SidebarInset>
 
@@ -649,7 +436,10 @@ export default function Dashboard() {
               {navCommands.map((command) => (
                 <CommandItem
                   key={command.label}
-                  onSelect={() => setCommandOpen(false)}
+                  onSelect={() => {
+                    setCommandOpen(false);
+                    navigate(command.to);
+                  }}
                 >
                   <command.icon />
                   <span>{command.label}</span>
