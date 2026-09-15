@@ -10,27 +10,27 @@ import { getMe } from "../lib/api";
  * to avoid losing page state during a network round-trip.
  */
 export function RequireAuth({ children }: { children: React.ReactNode }) {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
-  useEffect(() => {
-    let cancelled = false;
+  // useEffect(() => {
+  //   let cancelled = false;
 
-    getMe()
-      .then((response) => {
-        if (!cancelled && !response.ok) {
-          navigate("/sign-in", { replace: true });
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          navigate("/sign-in", { replace: true });
-        }
-      });
+  //   getMe()
+  //     .then((response) => {
+  //       if (!cancelled && !response.ok) {
+  //         navigate("/sign-in", { replace: true });
+  //       }
+  //     })
+  //     .catch(() => {
+  //       if (!cancelled) {
+  //         navigate("/sign-in", { replace: true });
+  //       }
+  //     });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [navigate]);
+  //   return () => {
+  //     cancelled = true;
+  //   };
+  // }, [navigate]);
 
   return children;
 }
