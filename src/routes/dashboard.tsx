@@ -57,7 +57,9 @@ import {
   CommandItem,
   CommandList,
 } from "../components/ui/command";
-import { signOut } from "../lib/api";
+import { signOut, getMe } from "../lib/api";
+import { useFetch } from "../hooks/use-fetch";
+import type { User } from "../lib/types";
 
 const navItems = [
   { label: "Tableau de bord", icon: IconHome, to: "/dashboard" },
@@ -89,12 +91,47 @@ const actionCommands = [
   },
 ];
 
-const currentUser = {
-  name: "Georges-Noé",
-  initials: "GN",
-  email: "georges@gmail.com",
-  avatar: "https://i.pravatar.cc/150?img=12",
+type DisplayUser = {
+  name: string;
+  email: string;
+  avatar?: string;
+  initials: string;
 };
+
+function getInitials(name?: string | null) {
+  if (!name?.trim()) return "…";
+  const parts = name.trim().split(/\s+/);
+  const first = parts[0]?.[0] ?? "";
+  const last = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? "") : "";
+  return (first + last).toUpperCase() || "…";
+}
+
+function resolveUser(payload: unknown): User | null {
+  if (!payload || typeof payload !== "object") return null;
+  const obj = payload as Record<string, unknown>;
+  const candidates = [obj.user, obj.data, obj.me, payload];
+  for (const candidate of candidates) {
+    if (
+      candidate &&
+      typeof candidate === "object" &&
+      typeof (candidate as Record<string, unknown>).email === "string"
+    ) {
+      return candidate as User;
+    }
+  }
+  return null;
+}
+
+function useDisplayUser(): DisplayUser {
+  const { data } = useFetch<unknown>(getMe);
+  const user = resolveUser(data);
+  return {
+    name: user?.name ?? "Chargement…",
+    email: user?.email ?? "",
+    avatar: user?.image ?? undefined,
+    initials: getInitials(user?.name),
+  };
+}
 
 const initialNotifications = [
   {
@@ -234,9 +271,11 @@ function NotificationsMenu() {
 function UserMenu({
   trigger,
   align = "start",
+  user,
 }: {
   trigger: ReactElement;
   align?: "start" | "end";
+  user: DisplayUser;
 }) {
   const navigate = useNavigate();
   return (
@@ -245,10 +284,10 @@ function UserMenu({
       <DropdownMenuContent align={align} className="w-44">
         <div className="flex flex-col gap-0.5 px-2 py-1.5">
           <p className="truncate text-xs font-semibold text-foreground">
-            {currentUser.name}
+            {user.name}
           </p>
           <p className="truncate text-[10px] text-muted-foreground">
-            {currentUser.email}
+            {user.email}
           </p>
         </div>
         <DropdownMenuSeparator />
@@ -283,6 +322,7 @@ export default function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [commandOpen, setCommandOpen] = useState(false);
+  const currentUser = useDisplayUser();
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -340,11 +380,13 @@ export default function DashboardLayout() {
         <SidebarFooter>
           <div className="flex items-center gap-2.5 p-1">
             <Avatar className="size-7">
-              <AvatarImage
-                src={currentUser.avatar}
-                alt={currentUser.name}
-                className="grayscale"
-              />
+              {currentUser.avatar && (
+                <AvatarImage
+                  src={currentUser.avatar}
+                  alt={currentUser.name}
+                  className="grayscale"
+                />
+              )}
               <AvatarFallback>{currentUser.initials}</AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
@@ -356,6 +398,7 @@ export default function DashboardLayout() {
               </p>
             </div>
             <UserMenu
+              user={currentUser}
               trigger={
                 <Button
                   variant="ghost"
@@ -397,6 +440,7 @@ export default function DashboardLayout() {
             <NotificationsMenu />
             <UserMenu
               align="end"
+              user={currentUser}
               trigger={
                 <button
                   type="button"
@@ -404,11 +448,13 @@ export default function DashboardLayout() {
                   aria-label="Account menu"
                 >
                   <Avatar className="size-8 ring-1 ring-border ring-offset-1 ring-offset-background transition-opacity hover:opacity-80">
-                    <AvatarImage
-                      src={currentUser.avatar}
-                      alt={currentUser.name}
-                      className="grayscale"
-                    />
+                    {currentUser.avatar && (
+                      <AvatarImage
+                        src={currentUser.avatar}
+                        alt={currentUser.name}
+                        className="grayscale"
+                      />
+                    )}
                     <AvatarFallback>{currentUser.initials}</AvatarFallback>
                   </Avatar>
                 </button>
