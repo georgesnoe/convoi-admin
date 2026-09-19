@@ -1,5 +1,6 @@
 import { useFetch } from "../../hooks/use-fetch";
 import { listMessages } from "../../lib/api";
+import { toArray } from "../../lib/to-array";
 import type { Message } from "../../lib/types";
 import { PageHeader } from "../../components/page-header";
 import { DataTable } from "../../components/data-table";
@@ -23,7 +24,7 @@ export default function MessagesPage() {
           { label: "Lu" },
           { label: "Envoyé le" },
         ]}
-        rows={messages ?? []}
+        rows={toArray(messages)}
         loading={loading}
         error={error}
         emptyMessage="Aucun message."

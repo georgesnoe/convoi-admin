@@ -1,14 +1,24 @@
+import React, { lazy, Suspense } from "react";
 import { createBrowserRouter, Navigate } from "react-router";
-import SignIn from "./routes/sign-in";
-import SignUp from "./routes/sign-up";
-import DashboardLayout from "./routes/dashboard";
-import DashboardIndex from "./routes/dashboard/index";
-import UsersPage from "./routes/dashboard/users";
-import VehiclesPage from "./routes/dashboard/vehicles";
-import TripsPage from "./routes/dashboard/trips";
-import ReservationsPage from "./routes/dashboard/reservations";
-import MessagesPage from "./routes/dashboard/messages";
 import { RequireAuth } from "./components/require-auth";
+
+// 1. Dynamically import route components
+const SignIn = lazy(() => import("./routes/sign-in"));
+const SignUp = lazy(() => import("./routes/sign-up"));
+const DashboardLayout = lazy(() => import("./routes/dashboard"));
+const DashboardIndex = lazy(() => import("./routes/dashboard/index"));
+const UsersPage = lazy(() => import("./routes/dashboard/users"));
+const VehiclesPage = lazy(() => import("./routes/dashboard/vehicles"));
+const TripsPage = lazy(() => import("./routes/dashboard/trips"));
+const ReservationsPage = lazy(() => import("./routes/dashboard/reservations"));
+const MessagesPage = lazy(() => import("./routes/dashboard/messages"));
+
+// 2. A simple fallback loader while the page bundle downloads
+const PageLoader = () => (
+  <div className="flex h-screen items-center justify-center">
+    <p>Loading...</p>
+  </div>
+);
 
 const router = createBrowserRouter([
   {
@@ -17,26 +27,78 @@ const router = createBrowserRouter([
   },
   {
     path: "/sign-in",
-    element: <SignIn />,
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <SignIn />
+      </Suspense>
+    ),
   },
   {
     path: "/sign-up",
-    element: <SignUp />,
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <SignUp />
+      </Suspense>
+    ),
   },
   {
     path: "/dashboard",
     element: (
       <RequireAuth>
-        <DashboardLayout />
+        <Suspense fallback={<PageLoader />}>
+          <DashboardLayout />
+        </Suspense>
       </RequireAuth>
     ),
     children: [
-      { index: true, element: <DashboardIndex /> },
-      { path: "users", element: <UsersPage /> },
-      { path: "vehicles", element: <VehiclesPage /> },
-      { path: "trips", element: <TripsPage /> },
-      { path: "reservations", element: <ReservationsPage /> },
-      { path: "messages", element: <MessagesPage /> },
+      {
+        index: true,
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <DashboardIndex />
+          </Suspense>
+        ),
+      },
+      {
+        path: "users",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <UsersPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "vehicles",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <VehiclesPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "trips",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <TripsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "reservations",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <ReservationsPage />
+          </Suspense>
+        ),
+      },
+      {
+        path: "messages",
+        element: (
+          <Suspense fallback={<PageLoader />}>
+            <MessagesPage />
+          </Suspense>
+        ),
+      },
     ],
   },
 ]);

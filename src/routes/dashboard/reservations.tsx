@@ -1,5 +1,6 @@
 import { useFetch } from "../../hooks/use-fetch";
 import { listReservations } from "../../lib/api";
+import { toArray } from "../../lib/to-array";
 import type { Reservation } from "../../lib/types";
 import { PageHeader } from "../../components/page-header";
 import { DataTable } from "../../components/data-table";
@@ -27,7 +28,7 @@ export default function ReservationsPage() {
           { label: "Statut" },
           { label: "Créée le" },
         ]}
-        rows={reservations ?? []}
+        rows={toArray(reservations)}
         loading={loading}
         error={error}
         emptyMessage="Aucune réservation."

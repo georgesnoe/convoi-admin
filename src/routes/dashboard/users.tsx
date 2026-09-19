@@ -1,5 +1,6 @@
 import { useFetch } from "../../hooks/use-fetch";
 import { listUsers } from "../../lib/api";
+import { toArray } from "../../lib/to-array";
 import type { User } from "../../lib/types";
 import { PageHeader } from "../../components/page-header";
 import { DataTable } from "../../components/data-table";
@@ -22,7 +23,7 @@ export default function UsersPage() {
           { label: "Type" },
           { label: "Créé le" },
         ]}
-        rows={users ?? []}
+        rows={toArray(users)}
         loading={loading}
         error={error}
         emptyMessage="Aucun utilisateur."

@@ -180,9 +180,7 @@ function NotificationsMenu() {
                 className={[
                   "flex items-start gap-3 px-4 py-3 transition-colors hover:bg-muted/40",
                   item.unread ? "bg-muted/30" : "",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
+                ].join(" ")}
               >
                 <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
                   <item.icon className="size-3.5" aria-hidden="true" />

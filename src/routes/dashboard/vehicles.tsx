@@ -1,5 +1,6 @@
 import { useFetch } from "../../hooks/use-fetch";
 import { listVehicles } from "../../lib/api";
+import { toArray } from "../../lib/to-array";
 import type { Vehicle } from "../../lib/types";
 import { PageHeader } from "../../components/page-header";
 import { DataTable } from "../../components/data-table";
@@ -22,7 +23,7 @@ export default function VehiclesPage() {
           { label: "Places" },
           { label: "Immatriculation" },
         ]}
-        rows={vehicles ?? []}
+        rows={toArray(vehicles)}
         loading={loading}
         error={error}
         emptyMessage="Aucun véhicule."

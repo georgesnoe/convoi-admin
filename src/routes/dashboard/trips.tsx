@@ -1,5 +1,6 @@
 import { useFetch } from "../../hooks/use-fetch";
 import { listTrips } from "../../lib/api";
+import { toArray } from "../../lib/to-array";
 import type { Trip } from "../../lib/types";
 import { PageHeader } from "../../components/page-header";
 import { DataTable } from "../../components/data-table";
@@ -25,7 +26,7 @@ export default function TripsPage() {
           { label: "Places" },
           { label: "Fréquence" },
         ]}
-        rows={trips ?? []}
+        rows={toArray(trips)}
         loading={loading}
         error={error}
         emptyMessage="Aucun trajet."

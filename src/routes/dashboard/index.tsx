@@ -14,6 +14,7 @@ import {
   listVehicles,
 } from "../../lib/api";
 import type { Reservation, Trip, User, Vehicle } from "../../lib/types";
+import { toArray } from "../../lib/to-array";
 import { PageHeader } from "../../components/page-header";
 import { Badge } from "../../components/ui/badge";
 import { Skeleton } from "../../components/ui/skeleton";
@@ -25,7 +26,12 @@ function isInMonth(dateStr: string, year: number, month: number) {
   return date.getFullYear() === year && date.getMonth() === month;
 }
 
-function countInMonth<T>(items: T[], getDate: (item: T) => string, offset = 0) {
+function countInMonth<T>(
+  items: T[] | unknown,
+  getDate: (item: T) => string,
+  offset = 0,
+) {
+  if (!Array.isArray(items)) return 0;
   const now = new Date();
   const target = new Date(now.getFullYear(), now.getMonth() - offset, 1);
   return items.filter((item) =>
@@ -118,10 +124,10 @@ export default function DashboardIndex() {
   const loading =
     usersLoading || tripsLoading || vehiclesLoading || reservationsLoading;
 
-  const usersList = users ?? [];
-  const tripsList = trips ?? [];
-  const vehiclesList = vehicles ?? [];
-  const reservationsList = reservations ?? [];
+  const usersList = toArray<User>(users);
+  const tripsList = toArray<Trip>(trips);
+  const vehiclesList = toArray<Vehicle>(vehicles);
+  const reservationsList = toArray<Reservation>(reservations);
 
   const usersThisMonth = countInMonth(usersList, (user) => user.createdAt);
   const usersLastMonth = countInMonth(usersList, (user) => user.createdAt, 1);

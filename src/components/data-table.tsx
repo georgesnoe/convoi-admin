@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { toArray } from "../lib/to-array";
 import { Skeleton } from "./ui/skeleton";
 import {
   Table,
@@ -19,13 +20,14 @@ export function DataTable<T>({
   renderRow,
 }: {
   columns: { label: string; className?: string }[];
-  rows: T[];
+  rows: T[] | unknown;
   loading: boolean;
   error: string | null;
   emptyMessage: string;
   rowKey: (row: T) => string;
   renderRow: (row: T) => ReactNode;
 }) {
+  const safeRows = toArray<T>(rows);
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-card">
       <Table>
@@ -58,7 +60,7 @@ export function DataTable<T>({
                 {error}
               </TableCell>
             </TableRow>
-          ) : rows.length === 0 ? (
+          ) : safeRows.length === 0 ? (
             <TableRow>
               <TableCell
                 colSpan={columns.length}
@@ -68,7 +70,7 @@ export function DataTable<T>({
               </TableCell>
             </TableRow>
           ) : (
-            rows.map((row) => (
+            safeRows.map((row) => (
               <TableRow key={rowKey(row)}>{renderRow(row)}</TableRow>
             ))
           )}
