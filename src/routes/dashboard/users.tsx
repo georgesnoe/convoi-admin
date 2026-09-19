@@ -23,7 +23,7 @@ export default function UsersPage() {
           { label: "Type" },
           { label: "Créé le" },
         ]}
-        rows={toArray(users)}
+        rows={toArray<User>(users)}
         loading={loading}
         error={error}
         emptyMessage="Aucun utilisateur."

@@ -28,7 +28,7 @@ export default function ReservationsPage() {
           { label: "Statut" },
           { label: "Créée le" },
         ]}
-        rows={toArray(reservations)}
+        rows={toArray<Reservation>(reservations)}
         loading={loading}
         error={error}
         emptyMessage="Aucune réservation."

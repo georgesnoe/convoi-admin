@@ -20,7 +20,7 @@ export function DataTable<T>({
   renderRow,
 }: {
   columns: { label: string; className?: string }[];
-  rows: T[] | unknown;
+  rows: T[] | null | undefined;
   loading: boolean;
   error: string | null;
   emptyMessage: string;

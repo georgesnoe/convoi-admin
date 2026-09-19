@@ -23,7 +23,7 @@ export default function VehiclesPage() {
           { label: "Places" },
           { label: "Immatriculation" },
         ]}
-        rows={toArray(vehicles)}
+        rows={toArray<Vehicle>(vehicles)}
         loading={loading}
         error={error}
         emptyMessage="Aucun véhicule."

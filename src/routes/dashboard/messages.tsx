@@ -24,7 +24,7 @@ export default function MessagesPage() {
           { label: "Lu" },
           { label: "Envoyé le" },
         ]}
-        rows={toArray(messages)}
+        rows={toArray<Message>(messages)}
         loading={loading}
         error={error}
         emptyMessage="Aucun message."

@@ -1,4 +1,4 @@
-export function toArray<T>(value: T[] | unknown): T[] {
+export function toArray<T>(value: unknown): T[] {
   if (Array.isArray(value)) return value;
   if (value && typeof value === "object") {
     const obj = value as Record<string, unknown>;

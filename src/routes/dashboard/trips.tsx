@@ -26,7 +26,7 @@ export default function TripsPage() {
           { label: "Places" },
           { label: "Fréquence" },
         ]}
-        rows={toArray(trips)}
+        rows={toArray<Trip>(trips)}
         loading={loading}
         error={error}
         emptyMessage="Aucun trajet."

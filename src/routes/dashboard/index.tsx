@@ -27,7 +27,7 @@ function isInMonth(dateStr: string, year: number, month: number) {
 }
 
 function countInMonth<T>(
-  items: T[] | unknown,
+  items: T[] | null | undefined,
   getDate: (item: T) => string,
   offset = 0,
 ) {
